@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<style>
+	body
+	{
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+	}
+	#crosshair
+	{
+		position: absolute;
+		left: 49.9%;
+		top: 32%;
+		z-index: 100;
+		pointer-events: none;
+		color: #eee;
+		font-size: 40px;
+		visibility: hidden; /* Not currently used */
+	}
+	#intro
+	{
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		z-index: 100;
+		font-size: 20px;
+		text-align: center;
+		padding-top: 20%;
+		color: #eee;
+		background-color: rgba(0, 0, 10, 0.8);
+	}
+	</style>
+	<script src="js/three.min.js"></script>
+	<script src="js/jquery-1.11.3.min.js"></script>
+	<script type='text/javascript' src='js/DAT.GUI.min.js'></script>
+	</head>
+	<body>
+	<div id = "hud"></div>
+	<div id = "crosshair">.</div>
+	<div id = "intro">
+		<p>
+			<h3>Welcome to Block Shooter v2!</h3>
+			(Local Game)<br>
+			Controls are top left.<br>
+			Click this page to start!<br>
+			ESC to get your pointer back!<br>
+			Happy Shooting :)
+		</p>
+	</div>
+	<script>
+//.................................................................................................
+
+//	███   █    ████▄ ▄█▄    █  █▀        ▄▄▄▄▄    ▄  █ ████▄ ████▄    ▄▄▄▄▀ ▄███▄   █▄▄▄▄
+//	█  █  █    █   █ █▀ ▀▄  █▄█         █     ▀▄ █   █ █   █ █   █ ▀▀▀ █    █▀   ▀  █  ▄▀
+//	█ ▀ ▄ █    █   █ █   ▀  █▀▄       ▄  ▀▀▀▀▄   ██▀▀█ █   █ █   █     █    ██▄▄    █▀▀▌
+//	█  ▄▀ ███▄ ▀████ █▄  ▄▀ █  █       ▀▄▄▄▄▀    █   █ ▀████ ▀████    █     █▄   ▄▀ █  █
+//	███       ▀      ▀███▀    █                     █                ▀      ▀███▀     █
+//                         ▀                     ▀                                 ▀
+// 			THREE JS game by Phoenixinwater
+
+//.................................................................................................
+		var map =
+		[
+			[5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+			[5, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 1, 1, 0, 0, 0, 0, 0, 5],
+			[5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6, 6, 1, 1, 0, 4, 0, 4, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 1, 1, 0, 0, 0, 0, 0, 5],
+			[5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 1, 1, 0, 0, 8, 0, 0, 5],
+			[5, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 6, 6, 1, 1, 0, 4, 0, 0, 0, 0, 1, 1, 6, 1, 1, 1, 1, 1, 6, 6, 6, 1, 1, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 6, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 6, 1, 1, 1, 1, 6, 6, 1, 1, 1, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 6, 6, 1, 0, 0, 4, 4, 0, 0, 1, 1, 6, 6, 1, 1, 1, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 6, 6, 6, 6, 6, 1, 1, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 6, 1, 1, 1, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 6, 6, 6, 6, 6, 1, 1, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 1, 1, 1, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 6, 6, 6, 1, 1, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 0, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 6, 6, 1, 0, 0, 4, 0, 0, 0, 1, 1, 6, 1, 0, 0, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 4, 0, 1, 6, 6, 1, 1, 0, 0, 4, 0, 0, 0, 5],
+			[5, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 4, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 4, 0, 5],
+			[5, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 4, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 4, 0, 1, 6, 6, 1, 1, 0, 0, 4, 0, 0, 0, 5],
+			[5, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 6, 6, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 4, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 4, 0, 1, 6, 6, 1, 1, 0, 0, 0, 4, 0, 0, 5],
+			[5, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 0, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 0, 0, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 4, 0, 0, 0, 0, 5],
+			[5, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 6, 6, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 5],
+			[5, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 1, 1, 1, 1, 1, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+			[5, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+			[5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+		];
+		var spawnPos = [];
+		var goalPos = [];
+		// 0 - no wall
+		// 1 - wall
+		// 2 - goal
+		// 3 - player spawn and no wall
+		// 4 - enemy spawn and no wall
+		// 5 - high wall
+		// 8 - end windmill
+
+		$(function()
+		{
+			$("#hud").html("INSTRUCTIONS<br>----------------------<br>. WASD to move<br>. Space to shoot<br>. Shift to jump<br>. c for crosshair<br>. Press 1 or 2<br>-- for weapons<br>HP: X X X").css({"z-index":"10","padding":"20px","background":"rgba(54, 25, 25, .8)","position":"absolute","color":"white"});
+		});
+		//................................. Set Up ..............................................
+		var container = document.createElement( 'div' );
+		document.body.appendChild( container );
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		container.appendChild( renderer.domElement );
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.01, 1000 );
+
+		// Lighting
+		scene.add( new THREE.AmbientLight( 0x444444 ) );
+		var light = new THREE.DirectionalLight( 0xffffbb, 1 );
+		light.position.set( 0, 0, 5 );
+		scene.add( light );
+
+		hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+		hemiLight.color.setHSL( 0.6, 1, 0.6 );
+		hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+		hemiLight.position.set( 0, 500, 0 );
+		scene.add( hemiLight );
+
+		// Player Object
+		var geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1, 1, 1, 1 );
+		var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+		var player = new THREE.Mesh( geometry, material );
+		scene.add( player );
+		//player.visible = false; // Player used for hit-detection, not for visualization
+
+		// Background
+		var skyGeometry = new THREE.CubeGeometry( 100, 100, 100 );
+		var materialArray = [];
+		for (var i = 0; i < 6; i++)
+		{
+			materialArray.push( new THREE.MeshBasicMaterial({
+				color: 0x003399,
+				side: THREE.BackSide
+			}));
+		}
+		var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+		var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+		scene.add( skyBox );
+
+		var floorMaterial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+		var floorGeometry = new THREE.PlaneGeometry(100, 100, 10, 10);
+		floorGeometry.rotateX( - Math.PI / 2 );
+		var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+		floor.position.y += -1;
+		scene.add(floor);
+
+		//scene.fog = new THREE.FogExp2( 0x003399, 0.3 );
+
+		// Clocks
+		var clock = new THREE.Clock();
+		var deathClock = new THREE.Clock();
+		var hitClock = new THREE.Clock();
+		var gunElapse = 0;
+		var invElapse = 0;
+		clock.start();
+		deathClock.start();
+		hitClock.start();
+
+		//................................. Play elements ..............................................
+		var hp = 3;
+		var playerInv = false;
+		function PlayerHit()
+		{
+			hp -= 1;
+			if(hp <= 0)
+			{
+				$("#hud").html("<h1>Dead :( </h1>");
+			}
+			else
+			{
+				var hudHtml = "INSTRUCTIONS<br>----------------------<br>. WASD to move<br>. Space to shoot<br>. Shift to jump<br>. c for crosshair<br>. Press 1 or 2<br>-- for weapons<br>HP:";
+				for(var i = 0; i < hp; i++)
+				{
+					hudHtml += " X";
+				}
+				$("#hud").html(hudHtml);
+				playerInv = true;
+				invElapse = hitClock.getElapsedTime();
+			}
+		}
+		function InvCount()
+		{
+			if(invElapse > 0)
+			{
+				if(hitClock.getElapsedTime() - invElapse > 0.6)
+				{
+					invElapse = 0;
+					playerInv = false;
+				}
+			}
+		}
+
+		//................................. Controls ..............................................
+		window.addEventListener("keydown", function(e) {
+			// space and arrow keys
+			if([87, 83, 65, 68, 40, 16, 67, 48, 49].indexOf(e.keyCode) > -1) {
+				e.preventDefault();
+			}
+		}, false);
+		document.onkeydown = CheckKeyDown; // Calls key-down function
+		window.addEventListener("keyup", function(e) {
+			// space and arrow keys
+			if([87, 83, 65, 68, 40, 16, 67].indexOf(e.keyCode) > -1) {
+				e.preventDefault();
+			}
+		}, false);
+		document.onkeyup = CheckKeyUp; // Calls key-down function
+
+		// User Input
+		var moveState = {
+			up: false,
+			down: false,
+			left: false,
+			right: false,
+			jump: false,
+			falling: false
+		};
+
+		function CheckKeyDown(e)
+		{
+			e = e || window.event;
+
+			if (e.keyCode == '87') // Up arrow
+			{
+				moveState.up = true;
+			}
+			if (e.keyCode == '83') // Down arrow
+			{
+				moveState.down = true;
+			}
+			if (e.keyCode == '65') // Left arrow
+			{
+				 moveState.left = true;
+			}
+			if (e.keyCode == '68') // Right arrow
+			{
+				 moveState.right = true;
+			}
+			if (e.keyCode == '32') // Shoot
+			{
+				gunElapse = clock.getElapsedTime();
+				FireAnimation();
+				if(gunVal == 1)
+				{
+					Firebullet(gun, gunEnd);
+				}
+				else if(gunVal == 2)
+				{
+					Firebullet(shotgun.group, shotgun.lbarrelEnd);
+					Firebullet(shotgun.group, shotgun.rbarrelEnd);
+					Firebullet(shotgun.group, shotgun.frontEnd);
+					Firebullet(shotgun.group, shotgun.frontEndUp);
+					Firebullet(shotgun.group, shotgun.frontEndDown);
+				}
+			}
+			if (e.keyCode == '16') // Shift
+			{
+				moveState.jump = true;
+			}
+			if (e.keyCode == '67')
+			{
+				if($("#crosshair").css('visibility') == 'hidden')
+				{
+					$("#crosshair").css('visibility','visible');
+				}
+				else
+				{
+					$("#crosshair").css('visibility','hidden');
+				}
+			}
+			// Gun selection
+			if (e.keyCode == '49')
+			{
+				gunVal = 1;
+			}
+			if (e.keyCode == '50')
+			{
+				gunVal = 2;
+			}
+		}
+
+		function CheckKeyUp(e)
+		{
+			e = e || window.event;
+			if (e.keyCode == '87') // Up arrow
+			{
+				moveState.up = false;
+			}
+			if (e.keyCode == '83') // Down arrow
+			{
+				moveState.down = false;
+			}
+			if (e.keyCode == '65') // Left arrow
+			{
+				 moveState.left = false;
+			}
+			if (e.keyCode == '68') // Right arrow
+			{
+				 moveState.right = false;
+			}
+		}
+
+		function MoveStateCheck()
+		{
+			if (moveState.up) // Up arrow
+			{
+				PlayerMove(0, 0.1);
+			}
+			if (moveState.down) // Down arrow
+			{
+				PlayerMove(0, -0.1);
+			}
+			if (moveState.left) // Left arrow
+			{
+			   PlayerMove(-0.1, 0);
+			}
+			if (moveState.right) // Right arrow
+			{
+			   PlayerMove(0.1, 0);
+			}
+			if (moveState.jump)
+			{
+				Jump();
+			}
+			// Check if now falling
+			PlayerMove(0, 0);
+			if (moveState.falling && !moveState.jump)
+			{
+				Fall();
+			}
+		}
+
+		var tf = 0.0;
+		function Fall()
+		{
+			console.log("falling!");
+			var inc = -(9.81/3)*tf*tf;
+			yawObj.translateY( inc );
+			player.position.y = yawObj.position.y - 0.5;
+			if(player.position.y < 0)
+			{
+				yawObj.position.y = 0.5;
+				player.position.y = 0.0;
+				tf = 0.0;
+				moveState.falling = false;
+			}
+			else
+			{
+				tf+=0.005;
+			}
+		}
+
+		var t = 0.0;
+		function Jump()
+		{
+			var inc = -(9.81/3)*t*t + 1.35*t;
+			if(player.position.y < 0.7 && inc < 0) // Smoothen landing
+			{
+				t+=0.005;
+			}
+			else
+			{
+				t+=0.01;
+			}
+			yawObj.translateY( inc );
+			player.position.y = yawObj.position.y - 0.5;
+			if(WallDetect() || AABBIntersect(player, 0.1, walls, 0.6))
+			{
+				player.position.y = 1.1;
+				yawObj.position.y = player.position.y + 0.5; // Should be set to roof level
+				t = 0.0;
+				moveState.jump = false;
+			}
+			else if(player.position.y < 0)
+			{
+				yawObj.position.y = 0.5;
+				player.position.y = 0.0;
+				t = 0.0;
+				moveState.jump = false;
+			}
+		}
+
+		//................................. Camera Handling ..............................................
+		// Pointer lock API
+		var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+		if(havePointerLock)
+		{
+			var element = document.body;
+			// Checking and handling API
+			var pointerlockchange = function (event)
+			{
+				if(document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element)
+				{
+					console.log("Pointer is locked");
+				}
+				else
+				{
+					console.log("Pointer released");
+				}
+			}
+			var pointerlockerror = function(event)
+			{
+				console.log("Pointer lock API experienced an error");
+			}
+			// Hook pointer lock state change events
+			document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+			document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+			document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+			document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+			document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+			document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+
+			document.addEventListener('click', function(event)
+			{
+			 	// Ask browser to lock pointer pos
+				console.log("Begin pointer grab");
+				$("#intro").css('visibility','hidden');
+				element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+				element.requestPointerLock();
+			}, false);
+		}
+		else
+		{
+			console.log("Pointer Lock API not supported");
+		}
+
+		// Camera control set up
+		var pitchObj = new THREE.Object3D();
+		camera.rotation.set( 0, 0, 0 );
+		pitchObj.add(camera);
+		var yawObj = new THREE.Object3D();
+		yawObj.position.y = 0.5;
+		yawObj.add(pitchObj);
+		scene.add(yawObj);
+
+		// Mouse Event
+		document.addEventListener( 'mousemove', onMouseMove, false );
+		var PI_2 = Math.PI / 2;
+		function onMouseMove( event )
+		{
+			// Relative movement
+			var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+			var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+			yawObj.rotation.y -= movementX * 0.002;
+			pitchObj.rotation.x -= movementY * 0.002;
+			pitchObj.rotation.x = Math.max(-PI_2, Math.min(pitchObj.rotation.x));
+		}
+
+		//................................. Collision Controls ..............................................
+		// Collisions are done using the AABB to AABB approach: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+		// As well as sending out rays from the object's center position: http://stemkoski.github.io/Three.js/Collision-Detection.html and http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
+		var wallDetectRay = new THREE.Raycaster();
+		function WallDetect() // Currently Not Performing Great
+		{
+			var originPoint = player.position.clone();
+			for (var vertexIndex = 0; vertexIndex < player.geometry.vertices.length; vertexIndex++)
+			{
+				var localVertex = player.geometry.vertices[vertexIndex].clone();
+				var globalVertex = localVertex.applyMatrix4( player.matrix );
+				var directionVector = globalVertex.sub( player.position );
+
+				wallDetectRay.set( originPoint, directionVector.clone().normalize() );
+				var collisionResults = wallDetectRay.intersectObjects( walls );
+				if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+				{
+					console.log("RAY: Intersected a wall");
+					return true;
+				}
+			}
+			return false;
+		}
+
+		var wallDownRay = new THREE.Raycaster();
+		function WallDownDetect()
+		{
+			var originPoint = player.position.clone();
+			var directionVector = new THREE.Vector3(0, -1, 0);
+			wallDownRay.set(originPoint, directionVector);
+			var collisionResults = wallDownRay.intersectObjects(walls);
+			if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+			{
+				return true;
+			}
+
+			var origx1 = originPoint.x - 0.06, origx2 = originPoint.x + 0.06, origz1 = originPoint.z - 0.06, origz2 = originPoint.z + 0.06; // Seems okay without this for now
+			var origins = [origx1, origx2, origz1, origz2];
+			for (var i = 0; i < origins.length; i++)
+			{
+				wallDownRay.set(origins[i], directionVector);
+				collisionResults = wallDownRay.intersectObjects(walls);
+				if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		function MakeIntersectObjBox(obj, len)
+		{
+			var x = {
+				minX : obj.position.x - len,
+				maxX : obj.position.x + len,
+				minY : obj.position.y - len,
+				maxY : obj.position.y + len,
+				minZ : obj.position.z - len,
+				maxZ : obj.position.z + len
+			};
+			return x;
+		}
+
+		function MakeIntersectObj(obj, lenX, lenY, lenZ)
+		{
+			var x = {
+				minX : obj.position.x - lenX,
+				maxX : obj.position.x + lenX,
+				minY : obj.position.y - lenY,
+				maxY : obj.position.y + lenY,
+				minZ : obj.position.z - lenZ,
+				maxZ : obj.position.z + lenZ
+			};
+			return x;
+		}
+
+		function AABBIntersect(player, playerLen, walls, wallLen) // https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+		{
+			var a = MakeIntersectObjBox(player, playerLen);
+			for(var i = 0, l = walls.length; i < l; i++)
+			{
+				var b = MakeIntersectObjBox(walls[i], wallLen);
+				if ((a.minX <= b.maxX && a.maxX >= b.minX) && (a.minY <= b.maxY && a.maxY >= b.minY) && (a.minZ <= b.maxZ && a.maxZ >= b.minZ))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function AABBIntIndiv(player, playerLen, obj, objLen) // https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+		{
+			var a = MakeIntersectObjBox(player, playerLen);
+			var b = MakeIntersectObjBox(obj, objLen);
+			if ((a.minX <= b.maxX && a.maxX >= b.minX) && (a.minY <= b.maxY && a.maxY >= b.minY) && (a.minZ <= b.maxZ && a.maxZ >= b.minZ))
+			{
+				return true;
+			}
+			return false;
+		}
+
+		function IsPointInsideAABB(point, box) // https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+		{
+			return (point.x >= box.minX && point.x <= box.maxX) && (point.y >= box.minY && point.y <= box.maxY) && (point.z >= box.minY && point.z <= box.maxZ);
+		}
+
+		function PlayerMove(x, y) // Based on Camera position
+		{
+			// Save prev position
+			var yawObjOrig = yawObj.position.clone();
+			var playerOrig = player.position.clone();
+
+			// Move
+			yawObj.translateZ( - y );
+			yawObj.translateX( x );
+			player.position.x = yawObj.position.x;
+			player.position.z = yawObj.position.z;
+
+			var WD = WallDetect();
+			var AABB = AABBIntersect(player, 0.1, walls, 0.6);
+
+			// Test
+			if(WD || AABB)
+			{
+				if(AABB)
+				{
+					yawObj.position.set(yawObjOrig.x, yawObjOrig.y, yawObjOrig.z);
+					player.position.set(playerOrig.x, playerOrig.y, playerOrig.z);
+				}
+				if(moveState.falling)
+				{
+					yawObj.position.y = 1.6;
+					player.position.y = 1.1;
+					moveState.falling = false;
+				}
+			}
+			else if(player.position.y > 0.1 && !moveState.falling && !moveState.jump)
+			{
+				if(!WallDownDetect()) // Or could use AABB approach
+				{
+					moveState.falling = true;
+				}
+			}
+		}
+
+		//................................. Bullets ..............................................
+		var bullets = [];
+		var xBullets = []; // Bullets that are spawned but end trajectory
+		var kills = 0;
+		function Firebullet(gun, gunEnd)
+		{
+			var geometryB = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
+			var materialB = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+			var B = new THREE.Mesh( geometryB, materialB );
+			B.position.x = gun.position.x;
+			B.position.y = gun.position.y;
+			B.position.z = gun.position.z;
+			scene.add( B );
+
+			var endVec = new THREE.Vector3();
+			endVec.setFromMatrixPosition( gunEnd.matrixWorld );
+
+			// Set speed depending on what gun fired bullet
+			var bSpeed = 4.2;
+			if(gunVal == 2)
+			{
+				bSpeed = 0.2;
+			}
+
+			var bullet = {
+				model : B,
+				trajectory :
+				{
+					x : endVec.x - gun.position.x,
+					y : endVec.y - gun.position.y,
+					z : endVec.z - gun.position.z
+				},
+				speed : bSpeed,
+				type : gunVal,
+				aliveCount: 0
+			};
+			bullets.push(bullet);
+		}
+
+		function MoveBullets()
+		{
+			for(var i = 0, l = bullets.length; i < l; i++)
+			{
+				var bullet = bullets[i];
+
+				if(bullet.type == 2)
+				{
+					if(bullet.aliveCount > 40)
+					{
+						bullet.speed = 4.2;
+						for(var j = 0; j < 3; j++)
+						{
+							var newBullet =
+							{
+								model: bullet.model.clone(),
+								trajectory:
+								{
+									x: bullet.trajectory.x + Math.random()*2-1,
+									y: bullet.trajectory.y + Math.random()*2-1,
+									z: bullet.trajectory.z + Math.random()*2-1
+								},
+								speed: 0.2,
+								type: -2,
+								aliveCount: -1
+							};
+							scene.add(newBullet.model);
+							bullets.push(newBullet);
+						}
+						bullet.aliveCount = -1;
+					}
+					if(bullet.aliveCount != -1)
+					{
+						bullet.aliveCount+=1;
+					}
+				}
+
+				var vel = bullet.speed;
+				bullet.model.position.x += vel*bullet.trajectory.x;
+				bullet.model.position.y += vel*bullet.trajectory.y;
+				bullet.model.position.z += vel*bullet.trajectory.z;
+
+				if(AABBIntersect(bullet.model, 0.2, walls, 0.6))
+				{
+					// Remove bullet
+					bullet.model.visible = false;
+					xBullets.push(bullet);
+					bullets.splice(i, 1);
+					i--;
+					l--;
+				}
+			}
+		}
+
+		function FireAnimation()
+		{
+			if(scope.visible)
+			{
+				scope.visible = false;
+				scopeFire.visible = true;
+			}
+		}
+
+		//................................. AI ..............................................
+		var AICreator = function()
+		{
+			var rndTyp = Math.random();
+			this.type = 1;
+			if (rndTyp > 0.8)
+			{
+				var aiGeo = new THREE.BoxGeometry(0.6,0.6,0.6);
+				var aiMat = new THREE.MeshBasicMaterial({color: 0x551a8b});
+				this.type = 2;
+			}
+			else
+			{
+				var aiGeo = new THREE.BoxGeometry(0.2,0.2,0.2);
+				var aiMat = new THREE.MeshBasicMaterial({color: 0x7D26CD});
+			}
+			this.mesh = new THREE.Mesh(aiGeo, aiMat);
+			scene.add(this.mesh);
+
+			var rDirx = 0.0, rDiry = 0.0, rDirz = 0.0, rDirCnt = 30; // So enemies don't vibrate around when inactive
+
+			this.Move = function(player)
+			{
+				var origPos = this.mesh.position.clone();
+				if(Math.sqrt( Math.pow(player.position.x - this.mesh.position.x,2) +  Math.pow(player.position.y - this.mesh.position.y,2) + Math.pow(player.position.z - this.mesh.position.z,2) ) < 4)
+				{
+					var dirx = player.position.x - this.mesh.position.x;
+					var diry = player.position.y - this.mesh.position.y;
+					var dirz = player.position.z - this.mesh.position.z;
+					var vel = Math.random()/15.0;
+					this.mesh.position.x += vel*dirx;
+					this.mesh.position.y += vel*diry;
+					this.mesh.position.z += vel*dirz;
+				}
+				else
+				{
+					if(this.type == 2)
+					{
+						this.mesh.rotateY(PI_2 / 20);
+					}
+					if(rDirCnt < 20)
+					{
+						var vel = Math.random()/40.0;
+						this.mesh.position.x += vel*rDirx;
+						this.mesh.position.y += vel*rDiry;
+						this.mesh.position.z += vel*rDirz;
+						rDirCnt+=1;
+					}
+					else
+					{
+						// Constrain y-axis movement
+						if(this.mesh.position.y < 0.05)
+						{
+							rDiry = Math.round(Math.random()*2);
+						}
+						else if(this.mesh.position.y > 0.8)
+						{
+							rDiry = -Math.round(Math.random()*2);
+						}
+						else
+						{
+							rDiry = Math.round(Math.random()*2) - 1;
+						}
+						rDirx = Math.round(Math.random()*2) - 1;
+						rDirz = Math.round(Math.random()*2) - 1;
+						var vel = Math.random()/20.0;
+						this.mesh.position.x += vel*rDirx;
+						this.mesh.position.y += vel*rDiry;
+						this.mesh.position.z += vel*rDirz;
+						rDirCnt = 0;
+					}
+				}
+				if (this.type == 1)
+				{
+					var AABB = AABBIntersect(this.mesh, 0.1, walls, 0.6);
+					var AABBt = AABBIntersect(this.mesh, 0.1, tWalls, 0.6);
+				}
+				else if(this.type == 2)
+				{
+					var AABB = AABBIntersect(this.mesh, 0.3, walls, 0.6);
+					var AABBt = AABBIntersect(this.mesh, 0.3, tWalls, 0.6);
+				}
+				if (AABB || AABBt)
+				{
+					this.mesh.position.set(origPos.x, origPos.y, origPos.z);
+				}
+			}
+
+			this.alive = true;
+			this.BulletHit = function(bullets)
+			{
+				var aiSize = 0.2;
+				if(this.type == 2)
+				{
+					aiSize = 0.6;
+				}
+
+				for(var i = 0, l = bullets.length; i < l; i++)
+				{
+					if(AABBIntIndiv(this.mesh, aiSize, bullets[i].model, 0.2) && this.alive)
+					{
+						this.mesh.visible = false;
+						this.alive = false;
+						enemyCnt--;
+						console.log("HIT ENEMY");
+
+						// Remove bullet
+						bullets[i].model.visible = false;
+						xBullets.push(bullets[i]);
+						bullets.splice(i, 1);
+						i--;
+						l--;
+					}
+				}
+			}
+
+			this.PlayerHit = function(player)
+			{
+				if(this.alive && !playerInv)
+				{
+					if(AABBIntIndiv(this.mesh, 0.2, player, 0.2))
+					{
+						console.log("HIT PLAYER");
+						PlayerHit();
+					}
+				}
+			}
+		};
+
+		var aiEnemies = [];
+		function AILoop()
+		{
+			for(var i = 0, l = aiEnemies.length; i < l; i++)
+			{
+				if(aiEnemies[i].alive)
+				{
+					aiEnemies[i].Move(player);
+					if(bullets.length)
+					{
+						aiEnemies[i].BulletHit(bullets);
+					}
+					aiEnemies[i].PlayerHit(player);
+				}
+			}
+		}
+
+		//................................. Populate World ..............................................
+		// Utility
+		var wallPos = [];
+		var walls = [];
+		var tWalls = [];
+		function wallPosCalc(arr)
+		{
+			wallPos.push( //top left, right, bottom left, right
+			[
+				[arr[0],arr[1]],
+				[arr[0]-0.5,arr[1]+0.5],
+				[arr[0]+0.5,arr[1]+0.5],
+				[arr[0]-0.5,arr[1]-0.5],
+				[arr[0]+0.5,arr[1]-0.5]
+			]
+			);
+		}
+
+		function posToPT(x,y)
+		{
+			var j = Math.floor(x);
+			var i = Math.floor(-(y+0.5));
+			return [j, i];
+		}
+
+		// Population Function
+		var Windmill = function()
+		{
+			var postGeo = new THREE.BoxGeometry(1, 4, 1);
+			var postMat = new THREE.MeshLambertMaterial( { color: 0x6B4226 });
+			this.postMesh = new THREE.Mesh( postGeo, postMat );
+			this.postMesh.position.set(0, 1, 0);
+
+			var topGeo = new THREE.BoxGeometry(2, 2, 2);
+			var topMat = new THREE.MeshLambertMaterial( { color: 0xff69b4 });
+			this.topMesh = new THREE.Mesh(topGeo, topMat);
+			this.topMesh.position.set(0, 3, 0);
+
+			var bladeGeo = new THREE.BoxGeometry(3, 0.1, 0.3);
+			var bladeMat = new THREE.MeshLambertMaterial( { color: 0xFF7F24 });
+			var bladeOne = new THREE.Mesh(bladeGeo, bladeMat);
+			bladeOne.rotateX(PI_2);
+			var bladeTwo = new THREE.Mesh();
+			bladeTwo = bladeOne.clone();
+			bladeTwo.rotateY(PI_2);
+
+			this.blades = new THREE.Mesh();
+			this.blades.add(bladeOne);
+			this.blades.add(bladeTwo);
+			this.blades.position.set(0, 3, -1.05);
+
+			this.model = new THREE.Mesh();
+			this.model.add(this.postMesh);
+			this.model.add(this.topMesh);
+			this.model.add(this.blades);
+			scene.add(this.model);
+		};
+		var windmill = new Windmill();
+
+		function populateWorld(map,spawnPos,goalPos)
+		{
+			for(var i = 0, l = map.length; i < l; i ++)
+			{
+				for(var j = 0, l2 = map[i].length; j < l2; j ++)
+				{
+					switch(map[i][j])
+					{
+						case 0:
+							// Empty
+							break;
+						case 1:
+							// Walls
+							var wallGeometry = new THREE.BoxGeometry( 1, 2, 1 );
+							var wallMaterial = new THREE.MeshLambertMaterial( { color: 0x663300 } );
+							var wallMesh = new THREE.Mesh( wallGeometry, wallMaterial );
+							wallMesh.position.set(j,0,-i);
+							wallPosCalc([j,0,-i]);
+							scene.add( wallMesh );
+							walls.push( wallMesh );
+							break;
+						case 2:
+							// Goals
+							//goalPos.push([j,-i,0]);
+							break;
+						case 3:
+							// Player Spawn
+							player.position.set(j,0,-i-0.5);
+							yawObj.position.set(player.position.x, player.position.y + 0.5, player.position.z);
+							console.log('Spawn: ' + j + ' ' + (-i));
+							spawnPos.push([j,-i,0]);
+							break;
+						case 4:
+							// Enemies
+							var ai = new AICreator();
+							ai.mesh.position.set(j, 0, -i-0.5);
+							aiEnemies.push(ai);
+							break;
+						case 5: // Green map-wall
+							var walltGeometry = new THREE.BoxGeometry(1, 10, 1);
+							var walltMat = new THREE.MeshLambertMaterial( { color: 0x006400 });
+							var walltMesh = new THREE.Mesh( walltGeometry, walltMat );
+							walltMesh.position.set(j, 0, -i);
+							scene.add(walltMesh);
+							tWalls.push(walltMesh);
+							break;
+						case 6: // High in-map walls
+							var walltGeometry = new THREE.BoxGeometry(1, 10, 1);
+							var walltMat = new THREE.MeshLambertMaterial( { color: 0xCCCC00 });
+							var walltMesh = new THREE.Mesh( walltGeometry, walltMat );
+							walltMesh.position.set(j, 0, -i);
+							scene.add(walltMesh);
+							tWalls.push(walltMesh);
+							break;
+						case 8: // Windmill
+							windmill.model.position.set(j, 0, -i);
+							break;
+						default:
+							//
+					}
+				}
+			}
+		}
+		populateWorld(map,spawnPos,goalPos); // Start process
+
+		//................................. Gun (Construction and Movement) ..............................................
+		var gunVal = 1;
+		// Default gun
+		// gunVal => 1
+		var gunGeo = new THREE.BoxGeometry( 0.1, 0.3, 0.1 );
+		var gunMat = new THREE.MeshBasicMaterial( { color: 0x2e2e1f } );
+		var gun = new THREE.Mesh( gunGeo, gunMat );
+		gun.position.set(0,0,0);
+		var gunEnd = new THREE.Object3D();
+		gunEnd.position.set(0,0.15,0.0);
+		gun.add(gunEnd);
+		var scopeGeo = new THREE.BoxGeometry( 0.05, 0.05, 0.05 );
+		var scopeMat = new THREE.MeshBasicMaterial( { color: 0xffffff } );
+		var scope = new THREE.Mesh( scopeGeo, scopeMat );
+		scope.position.set(0, 0, 0.05);
+		var scopeFire = new THREE.Mesh();
+		scopeFire = scope.clone();
+		scopeFire.material = new THREE.MeshBasicMaterial ({color: 0xff3300});
+		scopeFire.visible = false;
+		gun.add(scope);
+		gun.add(scopeFire);
+		scene.add( gun );
+
+		// Shotgun
+		// gunVal => 2
+		var Shotgun = function()
+		{
+			this.group = new THREE.Mesh();
+			var barrelGeo = new THREE.BoxGeometry( 0.04, 0.3, 0.06 );
+			var barrelMat = new THREE.MeshBasicMaterial( { color: 0x4f3d2e } );
+			var lbarrel = new THREE.Mesh(barrelGeo, barrelMat);
+			var rbarrel = lbarrel.clone();
+			lbarrel.position.set(0.1 - 0.03, 0, 0.03);
+			rbarrel.position.set(-0.1 + 0.03, 0, 0.03);
+
+			var topGeo = new THREE.BoxGeometry(0.1, 0.2, 0.02);
+			var topMat = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+			var top = new THREE.Mesh(topGeo, topMat);
+			top.position.set(0,0.0,0.06);
+
+			var scopeGeo = new THREE.BoxGeometry( 0.05, 0.05, 0.05 );
+			var scopeMat = new THREE.MeshBasicMaterial( { color: 0x00e5e5 } );
+			this.scope = new THREE.Mesh( scopeGeo, scopeMat );
+			this.scope.position.set(0, 0, 0.05);
+
+			this.scopeFire = new THREE.Mesh();
+			this.scopeFire = this.scope.clone();
+			this.scopeFire.material = new THREE.MeshBasicMaterial ({color: 0xff3300});
+			this.scopeFire.visible = false;
+
+			this.lbarrelEnd = new THREE.Object3D;
+			this.lbarrelEnd.position.set(0.02,0.15,0.0);
+			this.rbarrelEnd = new THREE.Object3D;
+			this.rbarrelEnd.position.set(-0.02,0.15,0.0);
+			this.frontEnd = new THREE.Object3D;
+			this.frontEnd.position.set(0,0.15,0);
+			this.frontEndUp = new THREE.Object3D;
+			this.frontEndUp.position.set(0,0.15,0.02);
+			this.frontEndDown = new THREE.Object3D;
+			this.frontEndDown.position.set(0,0.15,-0.02);
+
+			this.group.add(lbarrel);
+			this.group.add(this.lbarrelEnd);
+			this.group.add(rbarrel);
+			this.group.add(this.rbarrelEnd);
+			this.group.add(this.frontEnd);
+			this.group.add(this.frontEndUp);
+			this.group.add(this.frontEndDown);
+			this.group.add(top);
+			this.group.add(this.scope);
+		};
+		var shotgun = new Shotgun();
+		shotgun.group.position.set(0,5,0);
+		scene.add(shotgun.group);
+		shotgun.group.visible = false;
+
+		function GunMovement(gun)
+		{
+			var rMatrixX = new THREE.Matrix4();
+			var p_r = pitchObj.rotation.x;
+			// X-axis rot - Might not be needed
+			rMatrixX.set (
+				1, 0, 0, 0,
+				0, Math.cos(p_r), -Math.sin(p_r), 0,
+				0, Math.sin(p_r), Math.cos(p_r), 0,
+				0, 0, 0, 1
+			);
+			var rMatrixY = new THREE.Matrix4();
+			var y_r = yawObj.rotation.y;
+			// Y-axis rot
+			rMatrixY.set (
+				Math.cos(y_r), 0, Math.sin(y_r), 0,
+				0, 1, 0, 0,
+				-Math.sin(y_r), 0, Math.cos(y_r), 0,
+				0, 0, 0, 1
+			);
+			var tMatrix = new THREE.Matrix4(); // Includes translation
+			tMatrix.set (
+				1, 0, 0, 0.0,
+				0, 1, 0, 0.35,
+				0, 0, 1, -0.2,
+				0, 0, 0, 1
+			);
+			var tMatrix_final = new THREE.Matrix4();
+			tMatrix_final.multiplyMatrices(rMatrixY, rMatrixX);
+			tMatrix_final.multiplyMatrices(tMatrix_final, tMatrix);
+			var vec = new THREE.Vector3();
+			vec.setFromMatrixPosition( tMatrix_final );
+			gun.position.x = vec.x + player.position.x;
+			gun.position.y = vec.y + player.position.y;
+			gun.position.z = vec.z + player.position.z;
+		}
+
+		function GunHandle()
+		{
+				if(gunVal == 1)
+				{
+					gun.visible = true;
+					shotgun.group.visible = false;
+
+					gun.rotation.set(0, 0, 0);
+					gun.position.set(0, 0, 0);
+					gun.rotation.x = -PI_2;
+					gun.position.set(yawObj.position.x, yawObj.position.y, yawObj.position.z);
+					gun.rotation.z = yawObj.rotation.y;
+					GunMovement(gun);
+					var ptGunUp = PI_2*0.15; // To have gun up a bit on default for visualization
+					gun.rotateX(pitchObj.rotation.x + ptGunUp);
+				}
+				else if(gunVal == 2)
+				{
+					shotgun.group.visible = true;
+					gun.visible = false;
+
+					shotgun.group.rotation.set(0, 0, 0);
+					shotgun.group.position.set(0, 0, 0);
+					shotgun.group.rotation.x = -PI_2;
+					shotgun.group.position.set(yawObj.position.x, yawObj.position.y, yawObj.position.z);
+					shotgun.group.rotation.z = yawObj.rotation.y;
+					GunMovement(shotgun.group);
+					var ptGunUp = PI_2*0.15; // To have gun up a bit on default for visualization
+					shotgun.group.rotateX(pitchObj.rotation.x + ptGunUp);
+				}
+		}
+
+		//................................. Rendering ..............................................
+		var render = function ()
+		{
+			requestAnimationFrame( render );
+			if(playerInv)
+			{
+				InvCount();
+			}
+			MoveBullets();
+			AILoop();
+			MoveStateCheck();
+			GunHandle();
+			if(gunElapse > 0)
+			{
+				if(clock.getElapsedTime() - gunElapse > 0.4)
+				{
+					gunElapse = 0;
+					scopeFire.visible = false;
+					scope.visible = true;
+				}
+			}
+			if(gunVal == 2)
+			{
+				shotgun.scope.rotateZ(PI_2/10);
+			}
+
+			if(enemyCnt == 0)
+			{
+				$("#hud").html("<h2>ALL ENEMIES DEAD!<br>YOU WIN!</h2>").css({"z-index":"10","padding":"20px","background":"rgba(54, 25, 25, .8)","position":"absolute","color":"white"});
+				enemyCnt--;
+			}
+			windmill.blades.rotation.z += PI_2/200;
+
+			renderer.render(scene, camera);
+		};
+
+		// STARRRT
+		var enemyCnt = aiEnemies.length;
+		render();
+
+	</script>
+	</body>
+</html>
